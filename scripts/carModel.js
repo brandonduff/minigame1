@@ -2,10 +2,14 @@
  * This is a factory that will produce cars to the given specification
  * A car can accelerate, brake, and turn.
  */
+
+// TODO: Actually, let's make our speed and acceleration one number and our direction have an x and y.
+// Then position.x can be elaspedTime * speed * position.x
+// Then we can use 1/2at^2 + vt + pos to calculate our new position for x and y
 CarGame.Car = function (spec) {
     var speed;
     var acceleration;
-    var direction;
+    var direction = {};
     var accelForce; // How much do we accelerate when we hit w?
     var brakeForce; // How much do we slow down when we hit s?
     var frictForce; // How much do we slow down usually?
@@ -37,37 +41,37 @@ CarGame.Car = function (spec) {
      * Update our acceleration based on elapsed time if they're pressing on the gas
      */
     function accelerate(elapsedTime) {
-        acceleration += accelForce * (elapsedTime / 1000); // let's make it per second
+        if(speed < 20)
+            acceleration += accelForce * elapsedTime; // let's make it per second
     }
 
     /*
      * Slow down when braking based on elapsed time
      */
     function brake(elapsedTime) {
-        acceleration -= brakeForce * (elapsedTime / 1000);
+        if(speed > 0)
+            acceleration -= brakeForce * elapsedTime;
     }
 
     /*
      * Update our direction when turning based on elapsed time.
-TODO:* Let's get this modeled correctly with vectors. We will have an acceleration vector
-TODO:* That is due to our car moving forward. This will always be parallel to the direction
-TODO:* the car. Our direction vector from turning will always be 90 degrees to that. Then
-TODO:* we can just add them together to find the magnitude of the resultant vector and take
-TODO:* the inverse tangent of the angles of the component vectors to find the angle of
-TODO:* the resultant. Given this we should be able to get a new position.
-TODO:* We will have to factor the velocity from this new vector into our old velocity to get
-TODO:* our position and direction.
+     * TODO: This could all be wrong
+     * Let's get this modeled correctly with vectors. We will have an acceleration vector
+     * that is due to our car moving forward. This will always be parallel to the direction of
+     * the car. Our direction vector from turning will always be 90 degrees to that. Then
+     * we can just add them together to find the magnitude of the resultant vector and take
+     * the inverse tangent of the angles of the component vectors to find the angle of
+     * the resultant. Given this we should be able to get a new position.
+     * We will have to factor the velocity from this new vector into our old velocity to get
+     * our position and direction.
      */
-    function turn(elapsedTime) {
-        direction += turnSpeed * (elapsedTime / 1000);
-        while(direction < 0) {
-            direction += 2 * Math.PI;
-        }
-        if(direction > 2 * Math.PI) {
-            direction -= 2 * Math.PI;
-        }
+    function turnLeft(elapsedTime) {
+        direction = Math.PI;
     }
 
+    function turnRight(elapsedTime) {
+        direction = 0;
+    }
     /*
      * Draw our car on the screen using our specified position, width, and height
      */
@@ -80,18 +84,20 @@ TODO:* our position and direction.
      * This is where we convert acceleration to speed, speed to position, etc.
      */
     function update(elapsedTime) {
-        speed += acceleration * (elapsedTime / 1000);
+        if(speed < 20)
+            speed += acceleration * (elapsedTime / 1000);
         // For direction, our x-position change = speed * cos(direction), y-position change = speed*sin(direction)
-        position.x += speed * Math.cos(direction);
-        position.y += speed * Math.sin(direction);
+        position.x += speed;// * Math.cos(direction);
+        position.y += speed;
 
     }
     return {
         accelerate : accelerate,
         brake : brake,
-        turn : turn,
+        turnLeft : turnLeft,
+        turnRight : turnRight,
         update : update,
         draw : draw
-    }
+    };
 
 };

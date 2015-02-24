@@ -10,6 +10,7 @@
 CarGame.core = (function() {
     var arena;
     var car;
+    var myKeyboard = CarGame.input.Keyboard();
     /*
      * Do our one-time initialization stuff
      */
@@ -24,9 +25,10 @@ CarGame.core = (function() {
         car = CarGame.Car({
             carImage: CarGame.images['images/Car.png'],
             speed: 0,
-            direction: 0,
+            direction: {x: 0, y: 0},
+            accelForce: 5,
             acceleration: 0,
-            brakeForce: 1,
+            brakeForce: 5,
             frictForce: 0.2,
             turnSpeed: 0,
             width : 50,
@@ -34,6 +36,13 @@ CarGame.core = (function() {
             position : {x : arena.size /2 - 50/2,
                         y : arena.size /2 - 20/2}
         });
+
+        // Register input
+        myKeyboard.registerCommand(KeyEvent.DOM_VK_W, car.accelerate);
+        myKeyboard.registerCommand(KeyEvent.DOM_VK_S, car.brake);
+        myKeyboard.registerCommand(KeyEvent.DOM_VK_A, car.turnLeft);
+        myKeyboard.registerCommand(KeyEvent.DOM_VK_D, car.turnRight);
+
         requestAnimationFrame(gameLoop);
     }
 
@@ -42,7 +51,7 @@ CarGame.core = (function() {
      * update functions
      */
     function update(elapsedTime){
-
+        car.update(elapsedTime);
     }
 
     /*
@@ -59,6 +68,8 @@ CarGame.core = (function() {
      */
     function gameLoop(time) {
         var elapsedTime = performance.now() - time;
+        myKeyboard.update(elapsedTime);
+        update(elapsedTime);
         render();
 
         requestAnimationFrame(gameLoop);
