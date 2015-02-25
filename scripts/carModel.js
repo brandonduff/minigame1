@@ -3,13 +3,16 @@
  * A car can accelerate, brake, and turn.
  */
 
-// TODO: Actually, let's make our speed and acceleration one number and our direction have an x and y.
-// Then position.x can be elaspedTime * speed * position.x
-// Then we can use 1/2at^2 + vt + pos to calculate our new position for x and y
+// TODO: Clean this up.
+// Look at this link: http://engineeringdotnet.blogspot.com/2010/04/simple-2d-car-physics-in-games.html
+// for a good description of how to handle 2D cars.
 CarGame.Car = function (spec) {
     var speed;
     var acceleration;
-    var direction = {};
+    var direction;
+    var frontWheelVect = {};
+    var rearWheelVect = {};
+    var steerAngle;
     var accelForce; // How much do we accelerate when we hit w?
     var brakeForce; // How much do we slow down when we hit s?
     var frictForce; // How much do we slow down usually?
@@ -20,7 +23,8 @@ CarGame.Car = function (spec) {
     var width;
     var height;
     var position = {};
-    var center = {};
+    var turningLeft;
+    var turningRight;
 
     (function initialize(spec){
         speed = spec.speed;
@@ -34,7 +38,13 @@ CarGame.Car = function (spec) {
         width = spec.width;
         height = spec.height;
         position = spec.position;
-        center = spec.center;
+        frontWheelVect.x = position.x + width/2 * Math.cos(direction);
+        frontWheelVect.y = position.y + width/2 * Math.sin(direction);
+        rearWheelVect.x = position.x - width/2 * Math.cos(direction);
+        rearWheelVect.y = position.y - width/2 * Math.sin(direction);
+        steerAngle = 0;
+        turningLeft = false;
+        turningRight = false;
     }(spec));
 
     /*
@@ -42,41 +52,41 @@ CarGame.Car = function (spec) {
      */
     function accelerate(elapsedTime) {
         if(speed < 20)
-            acceleration += accelForce * elapsedTime; // let's make it per second
+            speed += accelForce * elapsedTime; // let's make it per second
+        else
+            speed = 20;
     }
 
     /*
      * Slow down when braking based on elapsed time
      */
     function brake(elapsedTime) {
-        if(speed > 0)
-            acceleration -= brakeForce * elapsedTime;
+        if(speed - brakeForce * elapsedTime > 0)
+            speed -= brakeForce * elapsedTime;
     }
 
     /*
      * Update our direction when turning based on elapsed time.
-     * TODO: This could all be wrong
-     * Let's get this modeled correctly with vectors. We will have an acceleration vector
-     * that is due to our car moving forward. This will always be parallel to the direction of
-     * the car. Our direction vector from turning will always be 90 degrees to that. Then
-     * we can just add them together to find the magnitude of the resultant vector and take
-     * the inverse tangent of the angles of the component vectors to find the angle of
-     * the resultant. Given this we should be able to get a new position.
-     * We will have to factor the velocity from this new vector into our old velocity to get
-     * our position and direction.
      */
     function turnLeft(elapsedTime) {
-        direction = Math.PI;
+       turningLeft = true;
     }
 
     function turnRight(elapsedTime) {
-        direction = 0;
+        turningRight = true;
     }
     /*
      * Draw our car on the screen using our specified position, width, and height
      */
     function draw(){
-        context.drawImage(carImage, position.x, position.y, width, height);
+        context.save();
+
+        context.translate(position.x, position.y);
+        context.rotate(direction);
+        context.translate(-position.x, -position.y);
+
+        context.drawImage(carImage, position.x - width/2, position.y - height/2, width, height);
+        context.restore();
     }
 
     /*
@@ -84,12 +94,38 @@ CarGame.Car = function (spec) {
      * This is where we convert acceleration to speed, speed to position, etc.
      */
     function update(elapsedTime) {
-        if(speed < 20)
-            speed += acceleration * (elapsedTime / 1000);
-        // For direction, our x-position change = speed * cos(direction), y-position change = speed*sin(direction)
-        position.x += speed;// * Math.cos(direction);
-        position.y += speed;
+        // Recalculate our wheel positions based off of our new position.
+        frontWheelVect.x = position.x + width/2 * Math.cos(direction);
+        frontWheelVect.y = position.y + width/2 * Math.sin(direction);
+        rearWheelVect.x = position.x - width/2 * Math.cos(direction);
+        rearWheelVect.y = position.y - width/2 * Math.sin(direction);
 
+        // Handle turning
+        steerAngle = 0;
+        if(turningLeft)
+            steerAngle -= Math.PI/5; // This should be a "fun" constant
+        if(turningRight)
+            steerAngle += Math.PI/5;
+        if(speed > 0)
+        {
+            speed -= frictForce * elapsedTime;
+        }
+        if(speed < 0)
+            speed = 0;
+        // Calculate the position of our wheels.
+        rearWheelVect.x += speed * elapsedTime * Math.cos(direction);
+        rearWheelVect.y += speed * elapsedTime * Math.sin(direction);
+        frontWheelVect.x += speed * elapsedTime * Math.cos(direction + steerAngle);
+        frontWheelVect.y += speed * elapsedTime * Math.sin(direction + steerAngle);
+
+        // Calculate our new car position and direction based off our wheel positions
+        position.x = (frontWheelVect.x + rearWheelVect.x) / 2;
+        position.y = (frontWheelVect.y + rearWheelVect.y) / 2;
+        direction =  Math.atan2(frontWheelVect.y - rearWheelVect.y , frontWheelVect.x - rearWheelVect.x);
+
+        // Turn this off so our input can activate again if need be next update
+        turningLeft = false;
+        turningRight = false;
     }
     return {
         accelerate : accelerate,

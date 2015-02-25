@@ -18,6 +18,7 @@ CarGame.core = (function() {
         var elapsedTime = 0,
             lastTimeStamp = performance.now();
 
+        // TODO: Add width and height instead of size. Arena should be a rectangle.
         arena = CarGame.carArena({
             borderImage : CarGame.images['images/Background.png'],
             size : 450
@@ -25,11 +26,11 @@ CarGame.core = (function() {
         car = CarGame.Car({
             carImage: CarGame.images['images/Car.png'],
             speed: 0,
-            direction: {x: 0, y: 0},
+            direction: 0,
             accelForce: 5,
             acceleration: 0,
             brakeForce: 5,
-            frictForce: 0.2,
+            frictForce: 0.5,
             turnSpeed: 0,
             width : 50,
             height : 20,

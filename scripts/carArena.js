@@ -18,13 +18,6 @@ CarGame.carArena = function(spec) {
         context.drawImage(borderImage, 0, 0, size, size);
         context.fillStyle = "blue";
         context.fillRect(wallSize.width, wallSize.width, playSize, playSize);
-
-        /*
-        context.drawImage(borderImage, 0, 0, wallSize.width, wallSize.height);
-        context.drawImage(borderImage, 0, 0, wallSize.height, wallSize.width);
-        context.drawImage(borderImage, 0, size - wallSize.width, wallSize.height, wallSize.width);
-        context.drawImage(borderImage, size - wallSize.width, 0, wallSize.width, wallSize.height);
-        */
     }
 
     return {
