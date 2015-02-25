@@ -8,35 +8,52 @@
  * This is our initialize function for our game. Called in our loader.js
  */
 CarGame.core = (function() {
-    var arena;
-    var car;
-    var myKeyboard = CarGame.input.Keyboard();
+    var arena,
+        car,
+        boulder,
+        myKeyboard = CarGame.input.Keyboard();
     /*
      * Do our one-time initialization stuff
      */
     function initialize() {
-        var elapsedTime = 0,
-            lastTimeStamp = performance.now();
 
-        // TODO: Add width and height instead of size. Arena should be a rectangle.
+        var canvas = document.getElementById('id-canvas');
         arena = CarGame.carArena({
             borderImage : CarGame.images['images/Background.png'],
-            size : 450
+            width : canvas.width,
+            height : canvas.height
         });
+
         car = CarGame.Car({
             carImage: CarGame.images['images/Car.png'],
             speed: 0,
             direction: 0,
             accelForce: 5,
-            acceleration: 0,
             brakeForce: 5,
             frictForce: 0.5,
-            turnSpeed: 0,
+            turnSpeed: Math.PI/5,
             width : 50,
             height : 20,
-            position : {x : arena.size /2 - 50/2,
-                        y : arena.size /2 - 20/2}
+            position : {x : arena.width /2 - 50/2,
+                        y : arena.height /2 - 20/2},
+            playHeight : arena.playHeight,
+            playWidth : arena.playWidth,
+            wallSize : arena.wallSize
         });
+
+       boulder = CarGame.Boulder({
+           boulderImage: CarGame.images['images/Boulder.png'],
+           width : 100,
+           height : 100,
+           direction : Math.PI / 7,
+           speed : 30,
+           position : {x: 300, y: 300},
+           rotation : 0,
+           rotationSpeed : 0.7,
+           playHeight : arena.playHeight,
+           playWidth : arena.playWidth,
+           wallSize : arena.wallSize
+       });
 
         // Register input
         myKeyboard.registerCommand(KeyEvent.DOM_VK_W, car.accelerate);
@@ -53,6 +70,7 @@ CarGame.core = (function() {
      */
     function update(elapsedTime){
         car.update(elapsedTime);
+        boulder.update(elapsedTime);
     }
 
     /*
@@ -61,6 +79,7 @@ CarGame.core = (function() {
     function render() {
         arena.draw();
         car.draw();
+        boulder.draw();
     }
 
     //TODO: Get our gameloop function sketched out

@@ -3,33 +3,31 @@
  * A car can accelerate, brake, and turn.
  */
 
-// TODO: Clean this up.
 // Look at this link: http://engineeringdotnet.blogspot.com/2010/04/simple-2d-car-physics-in-games.html
 // for a good description of how to handle 2D cars.
 CarGame.Car = function (spec) {
-    var speed;
-    var acceleration;
-    var direction;
-    var frontWheelVect = {};
-    var rearWheelVect = {};
-    var steerAngle;
-    var accelForce; // How much do we accelerate when we hit w?
-    var brakeForce; // How much do we slow down when we hit s?
-    var frictForce; // How much do we slow down usually?
-    var turnSpeed; // How quickly do we turn when pressing a or d?
-    var canvas = document.getElementById('id-canvas'),
-        context = canvas.getContext('2d');
-    var carImage;
-    var width;
-    var height;
-    var position = {};
-    var turningLeft;
-    var turningRight;
+    var speed,
+        direction,
+        frontWheelVect = {},
+        rearWheelVect = {},
+        steerAngle,
+        accelForce, // How much do we accelerate when we hit w?
+        brakeForce, // How much do we slow down when we hit s?
+        frictForce, // How much do we slow down usually?
+        turnSpeed, // How quickly do we turn when pressing a or d?
+        canvas = document.getElementById('id-canvas'),
+        context = canvas.getContext('2d'),
+        carImage,
+        width,
+        height,
+        position = {},
+        turningLeft,
+        turningRight,
+        playWidth, playHeight, wallSize, radius;
 
     (function initialize(spec){
         speed = spec.speed;
         direction = spec.direction;
-        acceleration = spec.acceleration;
         accelForce = spec.accelForce;
         brakeForce = spec.brakeForce;
         frictForce = spec.frictForce;
@@ -38,13 +36,14 @@ CarGame.Car = function (spec) {
         width = spec.width;
         height = spec.height;
         position = spec.position;
-        frontWheelVect.x = position.x + width/2 * Math.cos(direction);
-        frontWheelVect.y = position.y + width/2 * Math.sin(direction);
-        rearWheelVect.x = position.x - width/2 * Math.cos(direction);
-        rearWheelVect.y = position.y - width/2 * Math.sin(direction);
         steerAngle = 0;
         turningLeft = false;
         turningRight = false;
+        playWidth = spec.playWidth;
+        playHeight = spec.playHeight;
+        wallSize = spec.wallSize;
+        radius = (height)/2; // We'll underestimate the sphere for collision detection.
+                             // Player would probably less mad if you cheat for him rather than against him
     }(spec));
 
     /*
@@ -52,7 +51,7 @@ CarGame.Car = function (spec) {
      */
     function accelerate(elapsedTime) {
         if(speed < 20)
-            speed += accelForce * elapsedTime; // let's make it per second
+            speed += accelForce * elapsedTime;
         else
             speed = 20;
     }
@@ -75,6 +74,7 @@ CarGame.Car = function (spec) {
     function turnRight(elapsedTime) {
         turningRight = true;
     }
+
     /*
      * Draw our car on the screen using our specified position, width, and height
      */
@@ -82,7 +82,7 @@ CarGame.Car = function (spec) {
         context.save();
 
         context.translate(position.x, position.y);
-        context.rotate(direction);
+        context.rotate(direction + Math.PI); // Adding Pi flips the image so we're not appearing to drive backwards
         context.translate(-position.x, -position.y);
 
         context.drawImage(carImage, position.x - width/2, position.y - height/2, width, height);
@@ -91,7 +91,6 @@ CarGame.Car = function (spec) {
 
     /*
      * Update our model based on elapsed time.
-     * This is where we convert acceleration to speed, speed to position, etc.
      */
     function update(elapsedTime) {
         // Recalculate our wheel positions based off of our new position.
@@ -103,15 +102,14 @@ CarGame.Car = function (spec) {
         // Handle turning
         steerAngle = 0;
         if(turningLeft)
-            steerAngle -= Math.PI/5; // This should be a "fun" constant
+            steerAngle -= turnSpeed;
         if(turningRight)
-            steerAngle += Math.PI/5;
+            steerAngle += turnSpeed;
         if(speed > 0)
-        {
             speed -= frictForce * elapsedTime;
-        }
         if(speed < 0)
             speed = 0;
+
         // Calculate the position of our wheels.
         rearWheelVect.x += speed * elapsedTime * Math.cos(direction);
         rearWheelVect.y += speed * elapsedTime * Math.sin(direction);
@@ -122,6 +120,24 @@ CarGame.Car = function (spec) {
         position.x = (frontWheelVect.x + rearWheelVect.x) / 2;
         position.y = (frontWheelVect.y + rearWheelVect.y) / 2;
         direction =  Math.atan2(frontWheelVect.y - rearWheelVect.y , frontWheelVect.x - rearWheelVect.x);
+
+        // Handle running into walls. We want this to be handled differently than hitting a boulder, since this isn't bad.
+        if(position.x > playWidth + wallSize.width - radius){
+            position.x = playWidth + wallSize.width - 10 - radius;
+            speed = 0;
+        }
+        if(position.x < wallSize.width + radius) {
+            position.x = wallSize.width + radius + 10;
+            speed = 0;
+        }
+        if(position.y > playHeight + wallSize.height - radius) {
+            position.y = playHeight + wallSize.height - 10 - radius;
+            speed = 0;
+        }
+        if(position.y < wallSize.height + radius) {
+            position.y = wallSize.height + radius + 10;
+            speed = 0;
+        }
 
         // Turn this off so our input can activate again if need be next update
         turningLeft = false;

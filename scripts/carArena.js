@@ -1,28 +1,31 @@
 CarGame.carArena = function(spec) {
-    var size;
-    var borderImage;
-    var wallSize = {};
-    var playSize;
+    var height, width, borderImage, wallSize = {}, playHeight, playWidth;
+
     var canvas = document.getElementById("id-canvas"),
         context = canvas.getContext("2d");
 
     (function initialize(spec){
-        size = spec.size;
+        height = spec.height;
+        width = spec.width;
         borderImage = spec.borderImage;
-        wallSize.width = size / 10;
-        wallSize.height = size;
-        playSize = size - (wallSize.width*2);
+        wallSize.width = width / 20;
+        wallSize.height = height / 15;
+        playHeight = height - (wallSize.height*2);
+        playWidth = width - (wallSize.width*2);
     }(spec));
 
     function draw(){
-        context.drawImage(borderImage, 0, 0, size, size);
+        context.drawImage(borderImage, 0, 0, width, height);
         context.fillStyle = "blue";
-        context.fillRect(wallSize.width, wallSize.width, playSize, playSize);
+        context.fillRect(wallSize.width, wallSize.height, playWidth, playHeight);
     }
 
     return {
         draw : draw,
-        playSize : playSize,
-        size : size
+        playHeight : playHeight,
+        playWidth : playWidth,
+        width : width,
+        height : height,
+        wallSize : wallSize
     }
 };
