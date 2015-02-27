@@ -1,19 +1,15 @@
 /*
- * Our main CarGame object is defined in loader.js.
- * This is where we can add functions and stuff to it.
- */
-
-
-/*
- * This is our initialize function for our game. Called in our loader.js
+ * This is where the core of our game is. Holds objects and handles interaction
+ * between them.
  */
 CarGame.core = (function() {
     var arena,
         car,
-        boulder,
+        boulders = [],
         myKeyboard = CarGame.input.Keyboard();
     /*
      * Do our one-time initialization stuff
+     * TODO: Randomize boulder starting positions and directions
      */
     function initialize() {
 
@@ -27,11 +23,12 @@ CarGame.core = (function() {
         car = CarGame.Car({
             carImage: CarGame.images['images/Car.png'],
             speed: 0,
+            topSpeed : 50,
             direction: 0,
-            accelForce: 5,
-            brakeForce: 5,
-            frictForce: 0.5,
-            turnSpeed: Math.PI/5,
+            accelForce: 10,
+            brakeForce: 10,
+            frictForce: 3,
+            turnSpeed: Math.PI/4, // pi/4 is the only thing that makes sense for this
             width : 50,
             height : 20,
             position : {x : arena.width /2 - 50/2,
@@ -41,20 +38,61 @@ CarGame.core = (function() {
             wallSize : arena.wallSize
         });
 
-       boulder = CarGame.Boulder({
+       var boulder = CarGame.Boulder({
            boulderImage: CarGame.images['images/Boulder.png'],
            width : 100,
            height : 100,
-           direction : Math.PI / 7,
+           direction : {x: 1, y: 0},
            speed : 30,
-           position : {x: 300, y: 300},
+           position : {x: 250, y: 200},
            rotation : 0,
            rotationSpeed : 0.7,
            playHeight : arena.playHeight,
            playWidth : arena.playWidth,
            wallSize : arena.wallSize
        });
+        var boulder2 = CarGame.Boulder({
+           boulderImage: CarGame.images['images/Boulder.png'],
+           width : 100,
+           height : 100,
+           direction : {x: -1, y: 0},
+           speed : 30,
+           position : {x: 500, y: 200},
+           rotation : 0,
+           rotationSpeed : 0.7,
+           playHeight : arena.playHeight,
+           playWidth : arena.playWidth,
+           wallSize : arena.wallSize
+       });
+         var boulder3 = CarGame.Boulder({
+           boulderImage: CarGame.images['images/Boulder.png'],
+           width : 100,
+           height : 100,
+           direction : {x : 1, y : 1},
+           speed : 30,
+           position : {x: 100, y: 350},
+           rotation : 0,
+           rotationSpeed : 0.7,
+           playHeight : arena.playHeight,
+           playWidth : arena.playWidth,
+           wallSize : arena.wallSize
+       });
+        var boulder4 = CarGame.Boulder({
+           boulderImage: CarGame.images['images/Boulder.png'],
+           width : 100,
+           height : 100,
+           direction : {x : 0.75, y : -.5},
+           speed : 30,
+           position : {x: 800, y: 300},
+           rotation : 0,
+           rotationSpeed : 0.7,
+           playHeight : arena.playHeight,
+           playWidth : arena.playWidth,
+           wallSize : arena.wallSize
+        });
 
+        boulders.push(boulder, boulder2, boulder3, boulder4);
+        // We can decide how ma
         // Register input
         myKeyboard.registerCommand(KeyEvent.DOM_VK_W, car.accelerate);
         myKeyboard.registerCommand(KeyEvent.DOM_VK_S, car.brake);
@@ -65,12 +103,45 @@ CarGame.core = (function() {
     }
 
     /*
+     * Take two objects with a position and radius and see if they collide
+     */
+    function detectCollision(obj1, obj2)
+    {
+        // Pythagorean theorem to find distance
+        var distance = Math.sqrt(
+            ((obj1.position.x - obj2.position.x) * (obj1.position.x - obj2.position.x)) +
+            ((obj1.position.y - obj2.position.y) * (obj1.position.y - obj2.position.y))
+        );
+        return (distance < obj1.radius + obj2.radius);
+    }
+
+    /*
+     * Swap the directions of two boulders. Used when a collision occurs.
+     */
+    function swapBoulderDirections(obj1, obj2){
+        var tempx = obj1.direction.x;
+        var tempy = obj1.direction.y;
+        obj1.direction.x = obj2.direction.x;
+        obj1.direction.y = obj2.direction.y;
+        obj2.direction.x = tempx;
+        obj2.direction.y = tempy;
+    }
+
+    /*
      * Do all of our updates on our models. This level should just be calling our models'
      * update functions
+     * We'll also do collision detection between objects here.
      */
     function update(elapsedTime){
+        for(var n = 0; n < boulders.length; n++){
+           for(var j = n; j < boulders.length; j++){
+               if(detectCollision(boulders[n], boulders[j]))
+                   swapBoulderDirections(boulders[n], boulders[j]);
+           }
+        }
         car.update(elapsedTime);
-        boulder.update(elapsedTime);
+        for(var i = 0; i < boulders.length; i++)
+            boulders[i].update(elapsedTime);
     }
 
     /*
@@ -79,10 +150,10 @@ CarGame.core = (function() {
     function render() {
         arena.draw();
         car.draw();
-        boulder.draw();
+        for(var i = 0; i < boulders.length; i++)
+            boulders[i].draw();
     }
 
-    //TODO: Get our gameloop function sketched out
     /*
      * This is our gameLoop function!
      */

@@ -1,13 +1,14 @@
 /*
  * This is where we will define our boulder object!
+ * We used x and y components for direction rather than an angle.
+ * This makes it easier to compute elastic collision with other boulders.
  */
-
 CarGame.Boulder = function (spec) {
     var boulderImage,
         width,
         height,
         radius,
-        direction,
+        direction = {},
         speed,
         position = {},
         rotation,
@@ -34,48 +35,39 @@ CarGame.Boulder = function (spec) {
     }(spec));
 
     function update(elapsedTime) {
-        position.x += speed * elapsedTime * Math.cos(direction);
-        position.y += speed * elapsedTime * Math.sin(direction);
+        position.x += speed * elapsedTime * direction.x;
+        position.y += speed * elapsedTime * direction.y;
         rotation += rotationSpeed * elapsedTime;
 
-        // Collision detection?
         detectWallCollision();
     }
 
+    /*
+     * Called by our collision detection function for other boulders
+     */
+    function setDirection(newDir){
+        direction = newDir;
+    }
+
+    /*
+     * Handle collision between this particular and a wall.
+     */
     function detectWallCollision(){
-        while(direction > 2 * Math.PI){
-            direction -= 2 * Math.PI;
-        }
-        while(direction < 0){
-            direction += Math.PI * 2;
-        }
         if(position.x > playWidth + wallSize.width - radius){
             position.x -= 1;
-            if(direction < Math.PI / 2)
-                direction += Math.PI/2;
-            else
-                direction -= Math.PI/2;
+            direction.x *= -1;
         }
         if(position.x < wallSize.width + radius) {
             position.x += 1;
-            if(direction <= Math.PI)
-                direction -= Math.PI/2;
-            else
-                direction += Math.PI/2;
+            direction.x *= -1;
         }
         if(position.y > playHeight + wallSize.height - radius) {
             position.y -= 1;
-            if(direction < Math.PI/2)
-                direction -= Math.PI/2;
-            else
-                direction += Math.PI/2;
+            direction.y *= -1;
         }
         if(position.y < wallSize.height + radius) {
             position.y += 1;
-            if(direction >= (3 *Math.PI)/2)
-                direction += Math.PI/2;
-            else
-                direction -= Math.PI/2;
+            direction.y *= -1;
         }
     }
 
@@ -92,10 +84,11 @@ CarGame.Boulder = function (spec) {
 
     return {
         radius : radius,
-        direction : direction,
         speed : speed,
         position : position,
         update : update,
-        draw : draw
+        draw : draw,
+        setDirection : setDirection,
+        direction : direction
     }
 };
