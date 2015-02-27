@@ -125,6 +125,8 @@ CarGame.core = (function() {
         obj1.direction.y = obj2.direction.y;
         obj2.direction.x = tempx;
         obj2.direction.y = tempy;
+
+        // TODO: We need to add a while loop to inch our boulders away while they're colliding
     }
 
     /*
