@@ -126,7 +126,14 @@ CarGame.core = (function() {
         obj2.direction.x = tempx;
         obj2.direction.y = tempy;
 
-        // TODO: We need to add a while loop to inch our boulders away while they're colliding
+        // If our boulders get caught inside each other in between frames, we'll inch them away
+        // until they're no longer stuck.
+        while(detectCollision(obj1, obj2) === true){
+            obj1.position.x += obj1.direction.x *.1;
+            obj1.position.y += obj1.direction.y * .1;
+            obj2.position.x += obj2.direction.x * .1;
+            obj2.position.y += obj2.direction.y * .1;
+        }
     }
 
     /*
@@ -136,7 +143,7 @@ CarGame.core = (function() {
      */
     function update(elapsedTime){
         for(var n = 0; n < boulders.length; n++){
-           for(var j = n; j < boulders.length; j++){
+           for(var j = n + 1; j < boulders.length; j++){
                if(detectCollision(boulders[n], boulders[j]))
                    swapBoulderDirections(boulders[n], boulders[j]);
            }
