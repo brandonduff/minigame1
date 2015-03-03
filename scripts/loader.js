@@ -19,6 +19,8 @@ window.addEventListener('load', function() {
 	Modernizr.load([
 		{
 			load : [
+                'preload!scripts/text.js',
+                'preload!scripts/collisionDetection.js',
                 'preload!scripts/carArena.js',
                 'preload!scripts/input.js',
                 'preload!scripts/carModel.js',

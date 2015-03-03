@@ -50,6 +50,14 @@ CarGame.Boulder = function (spec) {
     }
 
     /*
+     * Called in setting the initial position of our boulders
+     */
+    function setPosition(newPos){
+        position.x = newPos.x;
+        position.y = newPos.y;
+    }
+
+    /*
      * Handle collision between this particular and a wall.
      */
     function detectWallCollision(){
@@ -89,6 +97,7 @@ CarGame.Boulder = function (spec) {
         update : update,
         draw : draw,
         setDirection : setDirection,
-        direction : direction
+        direction : direction,
+        setPosition : setPosition
     }
 };

@@ -7,7 +7,8 @@ CarGame.core = (function() {
         car,
         boulders = [],
         myKeyboard = CarGame.input.Keyboard(),
-        canvas;
+        canvas, context,
+        collisionDetection = CarGame.collisionDetection;
     /*
      * Do our one-time initialization stuff
      * TODO: Randomize boulder starting positions and directions
@@ -15,6 +16,7 @@ CarGame.core = (function() {
     function initialize() {
 
         canvas = document.getElementById('id-canvas');
+        context = canvas.getContext('2d');
         arena = CarGame.carArena({
             borderImage : CarGame.images['images/Background.png'],
             width : canvas.width,
@@ -94,7 +96,14 @@ CarGame.core = (function() {
         });
 
         boulders.push(boulder, boulder2, boulder3, boulder4);
-        // We can decide how ma
+        for(var i = 0; i < boulders.length; i++){
+            boulders[i].setPosition(arena.getNextWallPosition(boulders, boulders[i].radius, i));
+            // We should probably set a direction area based off our wall position.
+            // Sometimes during all our initial loading we can skip a few frames and our boulders
+            // can be outside our walls before we start really drawing.
+            // TODO: Actually, we should fix this by adjusting positions that are outside our bounds
+            // to right outside our bounds.
+        }
         // Register input
         myKeyboard.registerCommand(KeyEvent.DOM_VK_W, car.accelerate);
         myKeyboard.registerCommand(KeyEvent.DOM_VK_S, car.brake);
@@ -108,22 +117,26 @@ CarGame.core = (function() {
      * Function to clear the canvas before drawing again. Can get artifacts if not done.
      */
     function clear(){
-        var context = canvas.getContext('2d');
         context.clearRect(0, 0, canvas.width, canvas.height);
     }
 
     /*
-     * Take two objects with a position and radius and see if they collide
+     * Function to draw our level indicator on the top. Seemed silly to split this out to a module.
      */
-    function detectCollision(obj1, obj2)
-    {
-        // Pythagorean theorem to find distance
-        var distance = Math.sqrt(
-            ((obj1.position.x - obj2.position.x) * (obj1.position.x - obj2.position.x)) +
-            ((obj1.position.y - obj2.position.y) * (obj1.position.y - obj2.position.y))
-        );
-        return (distance < obj1.radius + obj2.radius);
+    function drawLevelIndicator(){
+        context.fillStyle = "yellow";
+        context.fillRect(.15 * canvas.width, 0,.75 * canvas.width,.4 * arena.yOffset);
     }
+
+    /*
+     * Function to draw our timers below our arena.
+     */
+    function drawTimers(){
+        context.fillStyle = "yellow";
+        context.fillRect(0, canvas.height - arena.yOffset *.4, canvas.width, arena.yOffset);
+    }
+
+
 
     /*
      * Swap the directions of two boulders. Used when a collision occurs.
@@ -138,7 +151,7 @@ CarGame.core = (function() {
 
         // If our boulders get caught inside each other in between frames, we'll inch them away
         // until they're no longer stuck.
-        while(detectCollision(obj1, obj2) === true){
+        while(collisionDetection.detectCollision(obj1, obj2) === true){
             obj1.position.x += obj1.direction.x *.1;
             obj1.position.y += obj1.direction.y * .1;
             obj2.position.x += obj2.direction.x * .1;
@@ -154,10 +167,10 @@ CarGame.core = (function() {
     function update(elapsedTime){
         for(var n = 0; n < boulders.length; n++){
            for(var j = n + 1; j < boulders.length; j++){
-               if(detectCollision(boulders[n], boulders[j]))
+               if(collisionDetection.detectCollision(boulders[n], boulders[j]))
                    swapBoulderDirections(boulders[n], boulders[j]);
            }
-           if(detectCollision(car, boulders[n]))
+           if(collisionDetection.detectCollision(car, boulders[n]))
                car.crash();
         }
         car.update(elapsedTime);
@@ -171,6 +184,8 @@ CarGame.core = (function() {
     function render() {
         clear();
         arena.draw();
+        drawLevelIndicator();
+        drawTimers();
         car.draw(arena.yOffset);
         for(var i = 0; i < boulders.length; i++)
             boulders[i].draw();
