@@ -24,7 +24,8 @@ CarGame.Car = function (spec) {
         position = {},
         turningLeft,
         turningRight,
-        playWidth, playHeight, wallSize, radius;
+        playWidth, playHeight, wallSize, radius,
+        crashed;
 
     (function initialize(spec){
         speed = spec.speed;
@@ -46,6 +47,7 @@ CarGame.Car = function (spec) {
         wallSize = spec.wallSize;
         radius = (height)/2; // We'll underestimate the sphere for collision detection.
                              // Player would probably less mad if you cheat for him rather than against him
+        crashed = false;
     }(spec));
 
     /*
@@ -75,6 +77,21 @@ CarGame.Car = function (spec) {
 
     function turnRight() {
         turningRight = true;
+    }
+
+    /*
+     * Function that can be called externally to  tell the car it's crashed.
+     */
+    function crash() {
+        crashed = true;
+        speed = 0;
+    }
+
+    /*
+     * Let us see if the car is crashed externally.
+     */
+    function isCarCrashed() {
+        return crashed;
     }
 
     /*
@@ -124,7 +141,7 @@ CarGame.Car = function (spec) {
         direction =  Math.atan2(frontWheelVect.y - rearWheelVect.y , frontWheelVect.x - rearWheelVect.x);
 
         // Handle running into walls. We want this to be handled differently than hitting a boulder, since this isn't bad.
-        if(position.x > playWidth + wallSize.width - radius){
+        if(position.x > playWidth + wallSize.width  - radius){
             position.x = playWidth + wallSize.width - 10 - radius;
             speed = 0;
         }
@@ -146,12 +163,16 @@ CarGame.Car = function (spec) {
         turningRight = false;
     }
     return {
+        position : position,
+        radius : radius,
         accelerate : accelerate,
         brake : brake,
         turnLeft : turnLeft,
         turnRight : turnRight,
         update : update,
-        draw : draw
+        draw : draw,
+        crash : crash,
+        isCarCrashed : isCarCrashed
     };
 
 };

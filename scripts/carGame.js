@@ -6,18 +6,20 @@ CarGame.core = (function() {
     var arena,
         car,
         boulders = [],
-        myKeyboard = CarGame.input.Keyboard();
+        myKeyboard = CarGame.input.Keyboard(),
+        canvas;
     /*
      * Do our one-time initialization stuff
      * TODO: Randomize boulder starting positions and directions
      */
     function initialize() {
 
-        var canvas = document.getElementById('id-canvas');
+        canvas = document.getElementById('id-canvas');
         arena = CarGame.carArena({
             borderImage : CarGame.images['images/Background.png'],
             width : canvas.width,
-            height : canvas.height
+            height : canvas.height,
+            yOffset : 100 // This is the difference in height pixels between our arena and our whole canvas
         });
 
         car = CarGame.Car({
@@ -103,6 +105,14 @@ CarGame.core = (function() {
     }
 
     /*
+     * Function to clear the canvas before drawing again. Can get artifacts if not done.
+     */
+    function clear(){
+        var context = canvas.getContext('2d');
+        context.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    /*
      * Take two objects with a position and radius and see if they collide
      */
     function detectCollision(obj1, obj2)
@@ -147,6 +157,8 @@ CarGame.core = (function() {
                if(detectCollision(boulders[n], boulders[j]))
                    swapBoulderDirections(boulders[n], boulders[j]);
            }
+           if(detectCollision(car, boulders[n]))
+               car.crash();
         }
         car.update(elapsedTime);
         for(var i = 0; i < boulders.length; i++)
@@ -157,8 +169,9 @@ CarGame.core = (function() {
      * Do all of our rendering. This level should just be calling our models' render functions.
      */
     function render() {
+        clear();
         arena.draw();
-        car.draw();
+        car.draw(arena.yOffset);
         for(var i = 0; i < boulders.length; i++)
             boulders[i].draw();
     }
