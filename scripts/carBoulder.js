@@ -35,8 +35,8 @@ CarGame.Boulder = function (spec) {
     }(spec));
 
     function update(elapsedTime) {
-        position.x += speed * elapsedTime * direction.x;
-        position.y += speed * elapsedTime * direction.y;
+        position.x += speed * elapsedTime/1000 * direction.x;
+        position.y += speed * elapsedTime/1000 * direction.y;
 
         // Sometimes our framerate can jitter or stop, especially if we minimize our window (because of how
         // requestAnimationFrame is implemented). When this happens our updates stop but our time keeps going.
@@ -49,7 +49,7 @@ CarGame.Boulder = function (spec) {
             position.y = playHeight + wallSize.height - radius + 1;
         if(position.y < wallSize.height + radius)
             position.y = wallSize.height + radius - 1;
-        rotation += rotationSpeed * elapsedTime;
+        rotation += rotationSpeed * elapsedTime/1000;
 
         detectWallCollision();
     }

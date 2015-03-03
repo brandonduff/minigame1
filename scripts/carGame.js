@@ -6,12 +6,13 @@ CarGame.core = (function() {
     var arena,
         car,
         boulders = [],
+        timers = [],
         myKeyboard = CarGame.input.Keyboard(),
         canvas, context,
-        collisionDetection = CarGame.collisionDetection;
+        collisionDetection = CarGame.collisionDetection,
+        lastTimeStamp;
     /*
      * Do our one-time initialization stuff
-     * TODO: Randomize boulder starting positions and directions
      */
     function initialize() {
 
@@ -27,11 +28,11 @@ CarGame.core = (function() {
         car = CarGame.Car({
             carImage: CarGame.images['images/Car.png'],
             speed: 0,
-            topSpeed : 50,
+            topSpeed : 400,
             direction: 0,
-            accelForce: 10,
-            brakeForce: 10,
-            frictForce: 3,
+            accelForce: 400,
+            brakeForce: 300,
+            frictForce: 100,
             turnSpeed: Math.PI/4, // pi/4 is the only thing that makes sense for this
             width : 50,
             height : 20,
@@ -47,10 +48,10 @@ CarGame.core = (function() {
            width : 100,
            height : 100,
            direction : {x: 1, y: 0},
-           speed : 30,
+           speed : 200,
            position : {x: 250, y: 200},
            rotation : 0,
-           rotationSpeed : 0.7,
+           rotationSpeed : 5,
            playHeight : arena.playHeight,
            playWidth : arena.playWidth,
            wallSize : arena.wallSize
@@ -60,10 +61,10 @@ CarGame.core = (function() {
            width : 100,
            height : 100,
            direction : {x: -1, y: 0},
-           speed : 30,
+           speed : 200,
            position : {x: 500, y: 200},
            rotation : 0,
-           rotationSpeed : 0.7,
+           rotationSpeed : 5,
            playHeight : arena.playHeight,
            playWidth : arena.playWidth,
            wallSize : arena.wallSize
@@ -73,10 +74,10 @@ CarGame.core = (function() {
            width : 100,
            height : 100,
            direction : {x : 1, y : 1},
-           speed : 30,
+           speed : 200,
            position : {x: 100, y: 350},
            rotation : 0,
-           rotationSpeed : 0.7,
+           rotationSpeed : 5,
            playHeight : arena.playHeight,
            playWidth : arena.playWidth,
            wallSize : arena.wallSize
@@ -86,24 +87,29 @@ CarGame.core = (function() {
            width : 100,
            height : 100,
            direction : {x : 0.75, y : -.5},
-           speed : 30,
+           speed : 200,
            position : {x: 800, y: 300},
            rotation : 0,
-           rotationSpeed : 0.7,
+           rotationSpeed : 5,
            playHeight : arena.playHeight,
            playWidth : arena.playWidth,
            wallSize : arena.wallSize
         });
+        for(var i = 0; i < 40; i++){
+           timers.push(CarGame.Timer({
+               lifeTime : 2,
+               width : 24,
+               position : {x : i * 24 + 5, y : canvas.height - (arena.yOffset * 0.4) + 5 },
+               height : 24,
+               image : CarGame.images['images/Clock.png']
+           }));
+        }
 
         boulders.push(boulder, boulder2, boulder3, boulder4);
         for(var i = 0; i < boulders.length; i++){
             boulders[i].setPosition(arena.getNextWallPosition(boulders, boulders[i].radius, i));
-            // We should probably set a direction area based off our wall position.
-            // Sometimes during all our initial loading we can skip a few frames and our boulders
-            // can be outside our walls before we start really drawing.
-            // TODO: Actually, we should fix this by adjusting positions that are outside our bounds
-            // to right outside our bounds.
         }
+        lastTimeStamp = performance.now();
         // Register input
         myKeyboard.registerCommand(KeyEvent.DOM_VK_W, car.accelerate);
         myKeyboard.registerCommand(KeyEvent.DOM_VK_S, car.brake);
@@ -134,6 +140,9 @@ CarGame.core = (function() {
     function drawTimers(){
         context.fillStyle = "yellow";
         context.fillRect(0, canvas.height - arena.yOffset *.4, canvas.width, arena.yOffset);
+        for(var i = 0; i < timers.length; i++){
+           timers[i].draw();
+        }
     }
 
 
@@ -176,6 +185,12 @@ CarGame.core = (function() {
         car.update(elapsedTime);
         for(var i = 0; i < boulders.length; i++)
             boulders[i].update(elapsedTime);
+        if(timers.length > 0) {
+            timers[0].update(elapsedTime);
+            if (timers[0].isExpired() === true) {
+                timers.splice(0, 1);
+            }
+        }
     }
 
     /*
@@ -195,7 +210,8 @@ CarGame.core = (function() {
      * This is our gameLoop function!
      */
     function gameLoop(time) {
-        var elapsedTime = performance.now() - time;
+        var elapsedTime = time - lastTimeStamp;
+        lastTimeStamp = time;
         myKeyboard.update(elapsedTime);
         update(elapsedTime);
         render();

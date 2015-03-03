@@ -55,7 +55,7 @@ CarGame.Car = function (spec) {
      */
     function accelerate(elapsedTime) {
         if(speed < topSpeed)
-            speed += accelForce * elapsedTime;
+            speed += accelForce * elapsedTime/1000;
         else
             speed = topSpeed;
     }
@@ -64,8 +64,8 @@ CarGame.Car = function (spec) {
      * Slow down when braking based on elapsed time
      */
     function brake(elapsedTime) {
-        if(speed - brakeForce * elapsedTime > 0)
-            speed -= brakeForce * elapsedTime;
+        if(speed - brakeForce * elapsedTime/1000 > 0)
+            speed -= brakeForce * elapsedTime/1000;
     }
 
     /*
@@ -112,6 +112,7 @@ CarGame.Car = function (spec) {
      * Update our model based on elapsed time.
      */
     function update(elapsedTime) {
+        elapsedTime /= 1000;
         // Recalculate our wheel positions based off of our new position.
         frontWheelVect.x = position.x + width/2 * Math.cos(direction);
         frontWheelVect.y = position.y + width/2 * Math.sin(direction);

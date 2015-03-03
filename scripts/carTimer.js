@@ -1,20 +1,37 @@
-CarGame.Timer = (function(spec){
-   var lifeTime, currentTime, isExpired;
+CarGame.Timer = function(spec){
+   var lifeTime, currentTime, expired,
+       position = {}, width, height, image;
 
     (function initialize(spec){
         lifeTime = spec.lifeTime;
         currentTime = 0;
-        isExpired = true;
-    })(spec);
+        expired = false;
+        position = spec.position;
+        width = spec.width;
+        height = spec.height;
+        image = spec.image;
+    }(spec));
 
     function update(elapsedTime){
-        currentTime += elapsedTime;
-        if(currentTime >= initialTime)
-            isExpired = true;
+        currentTime += elapsedTime/1000;
+        if(currentTime >= lifeTime)
+            expired = true;
+    }
+
+    function isExpired(){
+        return expired;
+    }
+
+    function draw(){
+        var canvas = document.getElementById('id-canvas'),
+            context = canvas.getContext('2d');
+
+        context.drawImage(image, position.x, position.y, width, height);
     }
 
     return {
         update : update,
-        isExpired : isExpired
+        isExpired : isExpired,
+        draw : draw
     }
-})();
+};
