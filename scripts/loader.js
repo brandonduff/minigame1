@@ -21,6 +21,7 @@ window.addEventListener('load', function() {
 			load : [
                 'preload!scripts/text.js',
                 'preload!scripts/collisionDetection.js',
+                'preload!scripts/carTimer.js',
                 'preload!scripts/carArena.js',
                 'preload!scripts/input.js',
                 'preload!scripts/carModel.js',
