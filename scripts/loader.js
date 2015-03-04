@@ -65,7 +65,7 @@ yepnope.addPrefix('preload', function(resource) {
 		// When everything has finished preloading, go ahead and start the game
 		if (CarGame.status.preloadComplete === CarGame.status.preloadRequest) {
 			console.log('Preloading complete!');
-			CarGame.core.initialize(2);
+			CarGame.core.initialize(1);
 		}
 	};
 	

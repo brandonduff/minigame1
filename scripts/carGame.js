@@ -142,7 +142,7 @@ CarGame.core = (function() {
         // If our boulders get caught inside each other in between frames, we'll inch them away
         // until they're no longer stuck.
         while(collisionDetection.detectCollision(obj1, obj2) === true){
-            obj1.position.x += obj1.direction.x *.1;
+            obj1.position.x += obj1.direction.x * .1;
             obj1.position.y += obj1.direction.y * .1;
             obj2.position.x += obj2.direction.x * .1;
             obj2.position.y += obj2.direction.y * .1;
