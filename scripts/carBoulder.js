@@ -58,7 +58,8 @@ CarGame.Boulder = function (spec) {
      * Called by our collision detection function for other boulders
      */
     function setDirection(newDir){
-        direction = newDir;
+        direction.x = newDir.x;
+        direction.y = newDir.y;
     }
 
     /*

@@ -10,12 +10,13 @@ CarGame.core = (function() {
         myKeyboard = CarGame.input.Keyboard(),
         canvas, context,
         collisionDetection = CarGame.collisionDetection,
-        lastTimeStamp;
+        lastTimeStamp, currentLevel;
     /*
      * Do our one-time initialization stuff
      */
-    function initialize() {
+    function initialize(level) {
 
+        currentLevel = level;
         canvas = document.getElementById('id-canvas');
         context = canvas.getContext('2d');
         arena = CarGame.carArena({
@@ -43,71 +44,43 @@ CarGame.core = (function() {
             wallSize : arena.wallSize
         });
 
-       var boulder = CarGame.Boulder({
-           boulderImage: CarGame.images['images/Boulder.png'],
-           width : 100,
-           height : 100,
-           direction : {x: 1, y: 0},
-           speed : 200,
-           position : {x: 250, y: 200},
-           rotation : 0,
-           rotationSpeed : 5,
-           playHeight : arena.playHeight,
-           playWidth : arena.playWidth,
-           wallSize : arena.wallSize
-       });
-        var boulder2 = CarGame.Boulder({
-           boulderImage: CarGame.images['images/Boulder.png'],
-           width : 100,
-           height : 100,
-           direction : {x: -1, y: 0},
-           speed : 200,
-           position : {x: 500, y: 200},
-           rotation : 0,
-           rotationSpeed : 5,
-           playHeight : arena.playHeight,
-           playWidth : arena.playWidth,
-           wallSize : arena.wallSize
-       });
-         var boulder3 = CarGame.Boulder({
-           boulderImage: CarGame.images['images/Boulder.png'],
-           width : 100,
-           height : 100,
-           direction : {x : 1, y : 1},
-           speed : 200,
-           position : {x: 100, y: 350},
-           rotation : 0,
-           rotationSpeed : 5,
-           playHeight : arena.playHeight,
-           playWidth : arena.playWidth,
-           wallSize : arena.wallSize
-       });
-        var boulder4 = CarGame.Boulder({
-           boulderImage: CarGame.images['images/Boulder.png'],
-           width : 100,
-           height : 100,
-           direction : {x : 0.75, y : -.5},
-           speed : 200,
-           position : {x: 800, y: 300},
-           rotation : 0,
-           rotationSpeed : 5,
-           playHeight : arena.playHeight,
-           playWidth : arena.playWidth,
-           wallSize : arena.wallSize
-        });
-        for(var i = 0; i < 40; i++){
+        for(var i = 0; i < currentLevel + 1; i++) {
+            boulders.push(CarGame.Boulder({
+                boulderImage: CarGame.images['images/Boulder.png'],
+                width: 100,
+                height: 100,
+                direction: {x: 1, y: 0},
+                speed: 200,
+                position: {x: 250, y: 200},
+                rotation: 0,
+                rotationSpeed: 5,
+                playHeight: arena.playHeight,
+                playWidth: arena.playWidth,
+                wallSize: arena.wallSize
+            }));
+        }
+        for(var j = 0; j < 10 + currentLevel * 10; j++){
            timers.push(CarGame.Timer({
                lifeTime : 2,
                width : 24,
-               position : {x : i * 24 + 5, y : canvas.height - (arena.yOffset * 0.4) + 5 },
+               position : {x : j * 24 + 5, y : canvas.height - (arena.yOffset * 0.4) + 5 },
                height : 24,
                image : CarGame.images['images/Clock.png']
            }));
         }
-
-        boulders.push(boulder, boulder2, boulder3, boulder4);
-        for(var i = 0; i < boulders.length; i++){
-            boulders[i].setPosition(arena.getNextWallPosition(boulders, boulders[i].radius, i));
+        for(var k = 0; k < boulders.length; k++){
+            boulders[k].setPosition(arena.getNextWallPosition(boulders, boulders[k].radius, k));
+            boulders[k].setDirection(function(){
+                var dir = {};
+                var sign = 1;
+                if(Math.random() < .5)
+                   sign *= -1;
+                dir.x = Math.random() * sign;
+                if(Math.random() < .5)
+                    sign *= -1;
+                dir.y = sign * Math.random();
+                return dir;
+            }());
         }
         lastTimeStamp = performance.now();
         // Register input
@@ -132,6 +105,14 @@ CarGame.core = (function() {
     function drawLevelIndicator(){
         context.fillStyle = "yellow";
         context.fillRect(.15 * canvas.width, 0,.75 * canvas.width,.4 * arena.yOffset);
+        var levelText = CarGame.text.Text({
+            text : 'Level ' + currentLevel,
+            font :'24px Comic Sans MS, cursive, sans-serif',
+            fill : 'rgba(0, 0, 0, 1)',
+            stroke : 'rgba(0, 0, 0, 1)',
+            pos : {x : 0.45 * canvas.width, y : arena.yOffset/10 }
+        });
+        levelText.draw();
     }
 
     /*

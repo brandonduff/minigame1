@@ -1,7 +1,7 @@
 /*jslint browser: true, white: true */
 /*global MYGAME */
 // ------------------------------------------------------------------
-//
+// This code was adapted from Dean's input handling example
 //
 //
 // ------------------------------------------------------------------
