@@ -10,7 +10,7 @@ CarGame.core = (function() {
         myKeyboard = CarGame.input.Keyboard(),
         canvas, context,
         collisionDetection = CarGame.collisionDetection,
-        lastTimeStamp, currentLevel;
+        lastTimeStamp, currentLevel, lost, win;
     /*
      * Do our one-time initialization stuff
      */
@@ -19,6 +19,8 @@ CarGame.core = (function() {
         currentLevel = level;
         canvas = document.getElementById('id-canvas');
         context = canvas.getContext('2d');
+        lost = false;
+        win = false;
         arena = CarGame.carArena({
             borderImage : CarGame.images['images/Background.png'],
             width : canvas.width,
@@ -59,7 +61,7 @@ CarGame.core = (function() {
                 wallSize: arena.wallSize
             }));
         }
-        for(var j = 0; j < 10 + currentLevel * 10; j++){
+        for(var j = 0; j <  10 + (5 * (currentLevel - 1)); j++){
            timers.push(CarGame.Timer({
                lifeTime : 2,
                width : 24,
@@ -160,8 +162,10 @@ CarGame.core = (function() {
                if(collisionDetection.detectCollision(boulders[n], boulders[j]))
                    swapBoulderDirections(boulders[n], boulders[j]);
            }
-           if(collisionDetection.detectCollision(car, boulders[n]))
+           if(collisionDetection.detectCollision(car, boulders[n])) {
                car.crash();
+               lost = true;
+           }
         }
         car.update(elapsedTime);
         for(var i = 0; i < boulders.length; i++)
@@ -170,6 +174,8 @@ CarGame.core = (function() {
             timers[0].update(elapsedTime);
             if (timers[0].isExpired() === true) {
                 timers.splice(0, 1);
+                if(timers.length == 0)
+                    win = true;
             }
         }
     }
@@ -185,6 +191,26 @@ CarGame.core = (function() {
         car.draw(arena.yOffset);
         for(var i = 0; i < boulders.length; i++)
             boulders[i].draw();
+        if(lost) {
+            var lossText = CarGame.text.Text({
+                text: 'You Lose!',
+                font: '48px Comic Sans MS, cursive, sans-serif',
+                fill: 'rgba(255, 0, 0, 1)',
+                stroke: 'rgba(255, 0, 0, 1)',
+                pos: {x: canvas.width / 2 - 100, y: canvas.height / 2 - 100}
+            });
+            lossText.draw();
+        }
+        if(win){
+             var winText = CarGame.text.Text({
+                text: 'You Win!',
+                font: '48px Comic Sans MS, cursive, sans-serif',
+                fill: 'rgba(0, 255, 0, 1)',
+                stroke: 'rgba(0, 255, 0, 1)',
+                pos: {x: canvas.width / 2 - 100, y: canvas.height / 2 - 100}
+            });
+            winText.draw();
+        }
     }
 
     /*
@@ -194,7 +220,11 @@ CarGame.core = (function() {
         var elapsedTime = time - lastTimeStamp;
         lastTimeStamp = time;
         myKeyboard.update(elapsedTime);
-        update(elapsedTime);
+        if(!lost && !win){
+            update(elapsedTime);
+
+        }
+
         render();
 
         requestAnimationFrame(gameLoop);
