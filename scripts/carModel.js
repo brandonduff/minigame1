@@ -129,6 +129,8 @@ CarGame.Car = function (spec) {
             speed -= frictForce * elapsedTime;
         if(speed < 0)
             speed = 0;
+        if(isCarCrashed() === true)
+            speed = 0;
 
         // Calculate the position of our wheels.
         rearWheelVect.x += speed * elapsedTime * Math.cos(direction);
@@ -162,6 +164,7 @@ CarGame.Car = function (spec) {
         // Turn this off so our input can activate again if need be next update
         turningLeft = false;
         turningRight = false;
+
     }
     return {
         position : position,

@@ -6,6 +6,7 @@
     <title>Bouncing Racing League</title>
     <script src = "scripts/modernizr.js"></script>
     <script src = "scripts/loader.js"></script>
+    <link rel = "stylesheet" type = "text/css" href = "styles/game.css">
 </head>
 
 <body>
@@ -18,7 +19,7 @@
             <li><button id = "id-about">About</button></li>
         </ul>
     </div>
-    <div id = "game-play" style = "height: 600px; width: 450px; margin-left:200px;">
+    <div id = "game-play" class= "screen">
         <canvas id="id-canvas" width= "1000" height = "600" ></canvas>
     </div>
     <div id = "high-scores" class = "screen">
@@ -38,6 +39,14 @@
         <p>This is some help on how to play the game</p>
         <ul class = "menu">
             <li><button id = "id-help-back">Back</button></li>
+        </ul>
+    </div>
+    <div id = "lost" class = "screen">
+        <h1>You Lost!</h1>
+        <p>Want to play again?</p>
+        <ul class = "menu">
+            <li><button id = "id-lost-yes">Yes</button></li>
+            <li><button id = "id-lost-no">No</button></li>
         </ul>
     </div>
     <div id = "about" class = "screen">

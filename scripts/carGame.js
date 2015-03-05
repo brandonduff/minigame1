@@ -23,14 +23,17 @@ CarGame.screens['game-play'] = (function() {
             pos : {x : canvas.width/2 - 64 * 2.5,  y: canvas.height/2 - 64}
         }),
         animationText,
-        askingToPlayAgain = false;
+        askingToPlayAgain = false,
+        cancelNextRequest,
+        burnTime;
     /*
      * Do our one-time initialization stuff
      */
     function initialize(level) {
 
-        currentLevel = level + 1;
+        currentLevel = level;
         elapsedTimeSinceStart = 0;
+        burnTime = 0;
 
         lost = false;
         win = false;
@@ -147,8 +150,15 @@ CarGame.screens['game-play'] = (function() {
         myKeyboard.registerCommand(KeyEvent.DOM_VK_A, car.turnLeft);
         myKeyboard.registerCommand(KeyEvent.DOM_VK_D, car.turnRight);
         myKeyboard.registerCommand(KeyEvent.DOM_VK_Y, restartGame);
+        myKeyboard.registerCommand(KeyEvent.DOM_VK_ESCAPE, function() {
+            //
+            // Stop the game loop by canceling the request for the next animation frame
+            cancelNextRequest = true;
+            //
+            // Then, return to the main menu
+            CarGame.game.showScreen('main-menu');
+        });
 
-        requestAnimationFrame(gameLoop);
     }
 
     /*
@@ -206,19 +216,17 @@ CarGame.screens['game-play'] = (function() {
      * Function to restart our game.
      */
     function restartGame(){
-        if(lost || win){
-            currentLevel = 0;
-            lastTimeStamp = performance.now();
-            animationPlaying = true;
-            startGame(performance.now());
-        }
+        currentLevel = 1;
+        lastTimeStamp = performance.now();
+        startGame();
     }
 
     /*
      * Function to start our game with animation.
      */
-    function startGame(time){
-            initialize(currentLevel);
+    function startGame(){
+        currentLevel = 1;
+        initialize(currentLevel);
     }
 
     /*
@@ -234,11 +242,17 @@ CarGame.screens['game-play'] = (function() {
            }
            if(collisionDetection.detectCollision(car, boulders[n])) {
                car.crash();
-               lost = true;
-               gameIsPlaying = false;
-               askingToPlayAgain = true;
                elapsedTimeSinceStart = 0;
            }
+        }
+        if(car.isCarCrashed() === true) {
+            burnTime += elapsedTime / 1000;
+            // TODO: Add our score to localstorage
+        }
+        if(burnTime > 3) {
+            CarGame.game.showScreen('lost');
+            cancelNextRequest = true;
+            currentLevel = 0;
         }
         car.update(elapsedTime);
         for(var i = 0; i < boulders.length; i++)
@@ -275,7 +289,8 @@ CarGame.screens['game-play'] = (function() {
     function gameLoop(time) {
         var elapsedTime = time - lastTimeStamp;
         lastTimeStamp = time;
-        elapsedTimeSinceStart += elapsedTime;
+        if(!car.isCarCrashed() === true)
+            elapsedTimeSinceStart += elapsedTime;
         myKeyboard.update(elapsedTime);
         update(elapsedTime);
             animationText = CarGame.text.Text({
@@ -287,14 +302,21 @@ CarGame.screens['game-play'] = (function() {
             });
         render();
 
-        requestAnimationFrame(gameLoop);
+        if(!cancelNextRequest)
+            requestAnimationFrame(gameLoop);
     }
 
     function run() {
-
+        CarGame.lastTimeStamp = performance.now();
+        currentLevel = 1;
+        initialize(currentLevel);
+        cancelNextRequest = false;
+        requestAnimationFrame(gameLoop);
     }
     return {
-        initialize : startGame
+        initialize : startGame,
+        run : run,
+        restartGame : restartGame
     }
 
 
