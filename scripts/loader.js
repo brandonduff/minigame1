@@ -1,5 +1,6 @@
 var CarGame = {
 	images : {},
+    screens : {},
 
 	status : {
 		preloadRequest : 0,
@@ -24,9 +25,14 @@ window.addEventListener('load', function() {
                 'preload!scripts/carTimer.js',
                 'preload!scripts/carArena.js',
                 'preload!scripts/input.js',
+                'preload!scripts/carGameScreens.js',
+                'preload!scripts/mainmenu.js',
                 'preload!scripts/carModel.js',
                 'preload!scripts/carBoulder.js',
 				'preload!scripts/carGame.js',
+                'preload!scripts/highscores.js',
+                'preload!scripts/help.js',
+                'preload!scripts/about.js',
                 'preload!images/Background.png',
                 'preload!images/Boulder.png',
                 'preload!images/Car.png',
@@ -65,7 +71,7 @@ yepnope.addPrefix('preload', function(resource) {
 		// When everything has finished preloading, go ahead and start the game
 		if (CarGame.status.preloadComplete === CarGame.status.preloadRequest) {
 			console.log('Preloading complete!');
-			CarGame.core.initialize(1);
+            CarGame.game.initialize();
 		}
 	};
 	
