@@ -25,7 +25,8 @@ CarGame.screens['game-play'] = (function() {
         animationText,
         askingToPlayAgain = false,
         cancelNextRequest,
-        burnTime;
+        burnTime,
+        score;
     /*
      * Do our one-time initialization stuff
      */
@@ -34,6 +35,8 @@ CarGame.screens['game-play'] = (function() {
         currentLevel = level;
         elapsedTimeSinceStart = 0;
         burnTime = 0;
+        if(level === 1)
+            score = 0;
 
         lost = false;
         win = false;
@@ -240,14 +243,15 @@ CarGame.screens['game-play'] = (function() {
                if(collisionDetection.detectCollision(boulders[n], boulders[j]))
                    swapBoulderDirections(boulders[n], boulders[j]);
            }
-           if(collisionDetection.detectCollision(car, boulders[n])) {
+           if(collisionDetection.detectCollision(car, boulders[n]) && car.isCarCrashed() === false) {
                car.crash();
                elapsedTimeSinceStart = 0;
+               CarGame.persistence.add(localStorage.length, score);
            }
         }
         if(car.isCarCrashed() === true) {
             burnTime += elapsedTime / 1000;
-            // TODO: Add our score to localstorage
+            score = 0;
         }
         if(burnTime > 3) {
             CarGame.game.showScreen('lost');
@@ -261,10 +265,13 @@ CarGame.screens['game-play'] = (function() {
             timers[0].update(elapsedTime);
             if (timers[0].isExpired() === true) {
                 timers.splice(0, 1);
+                score += 10;
                 if(timers.length == 0) {
                     win = true;
-                    if (currentLevel == 3)
-                        askingToPlayAgain = true;
+                    if (currentLevel == 3) {
+                        CarGame.persistence.add(localStorage.length, score);
+                        score = 0;
+                    }
                 }
             }
         }

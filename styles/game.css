@@ -100,3 +100,10 @@ ul.menu li button:active
 {
     text-align: center;
 }
+
+#high-scores p
+{
+    text-align: center;
+    padding: 0;
+    margin: 0;
+}

@@ -13,7 +13,10 @@ CarGame.screens['main-menu'] = (function() {
 
         document.getElementById('id-high-scores').addEventListener(
             'click',
-            function() { CarGame.game.showScreen('high-scores'); },
+            function() {
+                CarGame.persistence.report();
+                CarGame.game.showScreen('high-scores');
+            },
             false);
 
         document.getElementById('id-help').addEventListener(
