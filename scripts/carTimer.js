@@ -32,6 +32,7 @@ CarGame.Timer = function(spec){
     return {
         update : update,
         isExpired : isExpired,
-        draw : draw
+        draw : draw,
+        center : { x: position.x + width/2, y : position.y + height/2}
     }
 };

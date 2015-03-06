@@ -14,7 +14,6 @@ CarGame.screens['game-play'] = (function() {
         context = canvas.getContext('2d'),
         elapsedTimeSinceStart = 0,
         gameIsPlaying = false,
-        animationPlaying,
         getReadyText = CarGame.text.Text({
             text : "Get Ready!",
             font : '48px Comic Sans MS, cursive, sans-serif',
@@ -23,10 +22,10 @@ CarGame.screens['game-play'] = (function() {
             pos : {x : canvas.width/2 - 64 * 2.5,  y: canvas.height/2 - 64}
         }),
         animationText,
-        askingToPlayAgain = false,
         cancelNextRequest,
         burnTime,
-        score;
+        score,
+        particleSystems = [];
     /*
      * Do our one-time initialization stuff
      */
@@ -80,14 +79,14 @@ CarGame.screens['game-play'] = (function() {
         car = CarGame.Car({
             carImage: CarGame.images['images/Car.png'],
             speed: 0,
-            topSpeed : 400,
+            topSpeed : 275,
             direction: 0,
             accelForce: 400,
             brakeForce: 300,
             frictForce: 100,
             turnSpeed: Math.PI/4, // pi/4 is the only thing that makes sense for this
-            width : 50,
-            height : 20,
+            width : 40,
+            height : 17.5,
             position : {x : arena.width /2 - 50/2,
                         y : arena.height /2 - 20/2},
             playHeight : arena.playHeight,
@@ -98,8 +97,8 @@ CarGame.screens['game-play'] = (function() {
         for(var i = 0; i < currentLevel + 1; i++) {
             boulders.push(CarGame.Boulder({
                 boulderImage: CarGame.images['images/Boulder.png'],
-                width: 100,
-                height: 100,
+                width: 75,
+                height: 75,
                 direction: {x: 1, y: 0},
                 speed: 200,
                 position: {x: 250, y: 200},
@@ -113,9 +112,9 @@ CarGame.screens['game-play'] = (function() {
         for(var j = 0; j <  10 + (5 * (currentLevel - 1)); j++){
            timers.push(CarGame.Timer({
                lifeTime : 2,
-               width : 24,
-               position : {x : j * 24 + 5, y : canvas.height - (arena.yOffset * 0.4) + 5 },
-               height : 24,
+               width : 40,
+               position : {x : j * 40 + 5, y : canvas.height - (arena.yOffset * 0.4)  },
+               height : 40,
                image : CarGame.images['images/Clock.png']
            }));
         }
@@ -153,15 +152,10 @@ CarGame.screens['game-play'] = (function() {
         myKeyboard.registerCommand(KeyEvent.DOM_VK_A, car.turnLeft);
         myKeyboard.registerCommand(KeyEvent.DOM_VK_D, car.turnRight);
         myKeyboard.registerCommand(KeyEvent.DOM_VK_Y, restartGame);
-        myKeyboard.registerCommand(KeyEvent.DOM_VK_ESCAPE, function() {
-            //
-            // Stop the game loop by canceling the request for the next animation frame
-            cancelNextRequest = true;
-            //
-            // Then, return to the main menu
-            CarGame.game.showScreen('main-menu');
-        });
-
+        myKeyboard.registerCommand(KeyEvent.DOM_VK_UP, car.accelerate);
+        myKeyboard.registerCommand(KeyEvent.DOM_VK_DOWN, car.brake);
+        myKeyboard.registerCommand(KeyEvent.DOM_VK_LEFT, car.turnLeft);
+        myKeyboard.registerCommand(KeyEvent.DOM_VK_RIGHT, car.turnRight);
     }
 
     /*
@@ -246,6 +240,20 @@ CarGame.screens['game-play'] = (function() {
                car.crash();
                elapsedTimeSinceStart = 0;
                CarGame.persistence.add(localStorage.length, score);
+               particleSystems.push(CarGame.particleSystem({
+                    image : CarGame.images['images/Fire.png'],
+                    center: {x : car.position.x, y : car.position.y },
+                    speed: {mean : 20, stdev: 5},
+                    lifetime : {mean : 10, stdev : .5},
+                    emitterLifeTime : 3
+                }));
+               particleSystems.push(CarGame.particleSystem({
+                    image : CarGame.images['images/smoke.png'],
+                    center: {x : car.position.x, y : car.position.y },
+                    speed: {mean : 20, stdev: 5},
+                    lifetime : {mean : 10, stdev : .5},
+                    emitterLifeTime : 3
+                }));
            }
         }
         if(car.isCarCrashed() === true) {
@@ -263,18 +271,39 @@ CarGame.screens['game-play'] = (function() {
         if(timers.length > 0) {
             timers[0].update(elapsedTime);
             if (timers[0].isExpired() === true) {
+                particleSystems.push(CarGame.particleSystem({
+                    image : CarGame.images['images/White.png'],
+                    center: {x : timers[0].center.x, y : timers[0].center.y },
+                    speed: {mean : 30, stdev: 15},
+                    lifetime : {mean : .5, stdev : .2},
+                    emitterLifeTime : .5
+                }));
                 timers.splice(0, 1);
                 score += 10;
                 if(timers.length == 0) {
                     cancelNextRequest = true;
-                    CarGame.game.showScreen('transition');
                     if (currentLevel == 3) {
                         CarGame.persistence.add(localStorage.length, score);
                         score = 0;
+                        CarGame.game.showScreen('won');
                     }
+                    else
+                        CarGame.game.showScreen('transition');
                 }
             }
         }
+        var emittersToBeRemoved = [];
+        for(i = 0; i < particleSystems.length; i++){
+            particleSystems[i].update(elapsedTime/1000);
+            if(particleSystems[i].emitterLifeTime <= 0)
+                emittersToBeRemoved.push(i);
+        }
+        // Go backwards so splice doesn't mess up our indices
+        emittersToBeRemoved.sort(function(a,b){ return b - a; });
+        for(i = 0; i < emittersToBeRemoved.length; i++){
+            particleSystems.splice(emittersToBeRemoved[i], 1);
+        }
+
     }
 
     /*
@@ -288,6 +317,9 @@ CarGame.screens['game-play'] = (function() {
         car.draw(arena.yOffset);
         for (var i = 0; i < boulders.length; i++)
             boulders[i].draw();
+        for(i = 0; i < particleSystems.length; i++){
+            particleSystems[i].draw();
+        }
     }
 
     /*
@@ -299,6 +331,8 @@ CarGame.screens['game-play'] = (function() {
         if(!car.isCarCrashed() === true)
             elapsedTimeSinceStart += elapsedTime;
         myKeyboard.update(elapsedTime);
+        for(var i = 0; i < particleSystems.length; i++)
+            particleSystems[i].create();
         update(elapsedTime);
             animationText = CarGame.text.Text({
                 text: 3 - Math.round(elapsedTimeSinceStart / 1000),
