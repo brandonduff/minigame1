@@ -46,6 +46,11 @@ canvas {
 	font-size: 0.75em;
 }
 
+#main-menu h1
+{
+    color: firebrick;
+}
+
 ul.menu
 {
 	text-align: center;
