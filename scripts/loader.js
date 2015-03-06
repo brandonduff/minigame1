@@ -27,6 +27,7 @@ window.addEventListener('load', function() {
                 'preload!scripts/lostScreen.js',
                 'preload!scripts/input.js',
                 'preload!scripts/persistence.js',
+                'preload!scripts/transition.js',
                 'preload!scripts/carGameScreens.js',
                 'preload!scripts/mainmenu.js',
                 'preload!scripts/carModel.js',

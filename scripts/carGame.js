@@ -30,12 +30,12 @@ CarGame.screens['game-play'] = (function() {
     /*
      * Do our one-time initialization stuff
      */
-    function initialize(level) {
+    function initialize() {
 
-        currentLevel = level;
+        currentLevel++;
         elapsedTimeSinceStart = 0;
         burnTime = 0;
-        if(level === 1)
+        if(currentLevel === 1)
             score = 0;
 
         lost = false;
@@ -219,7 +219,7 @@ CarGame.screens['game-play'] = (function() {
      * Function to restart our game.
      */
     function restartGame(){
-        currentLevel = 1;
+        currentLevel = 0;
         lastTimeStamp = performance.now();
         startGame();
     }
@@ -228,8 +228,7 @@ CarGame.screens['game-play'] = (function() {
      * Function to start our game with animation.
      */
     function startGame(){
-        currentLevel = 1;
-        initialize(currentLevel);
+        currentLevel = 0;
     }
 
     /*
@@ -267,7 +266,8 @@ CarGame.screens['game-play'] = (function() {
                 timers.splice(0, 1);
                 score += 10;
                 if(timers.length == 0) {
-                    win = true;
+                    cancelNextRequest = true;
+                    CarGame.game.showScreen('transition');
                     if (currentLevel == 3) {
                         CarGame.persistence.add(localStorage.length, score);
                         score = 0;
@@ -315,8 +315,7 @@ CarGame.screens['game-play'] = (function() {
 
     function run() {
         CarGame.lastTimeStamp = performance.now();
-        currentLevel = 1;
-        initialize(currentLevel);
+        initialize();
         cancelNextRequest = false;
         requestAnimationFrame(gameLoop);
     }

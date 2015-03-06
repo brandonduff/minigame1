@@ -8,7 +8,7 @@ CarGame.screens['main-menu'] = (function() {
         // Setup each of menu events for the screens
         document.getElementById('id-new-game').addEventListener(
             'click',
-            function() { CarGame.game.showScreen('game-play'); },
+            function() { CarGame.game.showScreen('transition'); },
             false);
 
         document.getElementById('id-high-scores').addEventListener(

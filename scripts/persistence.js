@@ -41,11 +41,11 @@ CarGame.persistence = (function() {
             scores[item] = localStorage[key];
         }
         scores.sort(function(a, b){return b-a});
-        for(var score = 0; score < 3; score++){
+        for(var score = 0; score < scores.length; score++){
             node.innerHTML += (scores[score] + '<br/>');
         }
         localStorage.clear();
-        for(item = 0; item < 3; item++){
+        for(item = 0; item < 3 && item < scores.length; item++){
             add(item, scores[item]);
         }
         node.scrollTop = node.scrollHeight;
